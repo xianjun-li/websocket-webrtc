@@ -1,0 +1,17 @@
+<html>
+    <head>
+        <script src="main.js"></script>
+        
+    </head>
+    <body>
+        <button id="close_wx_btn">关闭</button>
+        <script>
+            window.onload = function(){
+                document.getElementById('close_wx_btn').addEventListener('click', function(){
+                    alert('close')
+                    wx_close()
+                });
+            };
+        </script>
+    </body>
+</html>
