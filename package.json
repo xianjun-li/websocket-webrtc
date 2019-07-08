@@ -2,7 +2,7 @@
   "name": "websocket-webrtc",
   "version": "0.1.0",
   "scripts": {
-    "serve:client": "http-server samples/client -c-1",
+    "serve:client": "http-server samples/client --ssl -c-1",
     "serve:server": "nodemon samples/server/index.js",
     "build": "webpack",
     "watch": "watch webpack",
