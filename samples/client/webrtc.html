@@ -4,14 +4,15 @@
     <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0;" name="viewport" />
     <link rel="stylesheet" href="css/normalize.css">
     <style>
-        #video {
+        video {
             width: 100%;
-            max-height: 300px;
+            max-width: 100%;
+            max-height: 30vh;
             text-align: center;
             margin: 0 auto;
             margin-bottom: 1rem;
         }
-        #snap {display: inline-block; text-align: center;}
+
         #canvas {
             display: block;
             width: 100%;
@@ -21,8 +22,19 @@
 </head>
 
 <body>
-    <video id="video" autoplay></video>
-    <button id="snap" class="sexyButton">Snap Photo</button>
+    <video id="localVideo" autoplay ></video>
+    <video id="remoteVideo" autoplay ></video>
+
+
+  <div>
+    <button id="startButton">Start</button>
+    <button id="callButton">Call</button>
+    <button id="hangupButton">Hang Up</button>
+
+    <button id="snap">Snap Photo</button>
+  </div>
+
+    
     <canvas id="canvas" width="640" height="480"></canvas>
 </body>
 
