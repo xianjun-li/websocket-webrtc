@@ -29,3 +29,5 @@ node_modules
 
 # project
 dist
+
+*.log
