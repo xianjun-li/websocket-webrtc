@@ -9,6 +9,18 @@ media api:
 */
 
 
+const eventEmitter = new EventEmitter
+
+console.log(eventEmitter)
+
+// 订阅事件
+
+eventEmitter.addListener('getUserMediaSuccess', (event) => {
+    console.log(event)
+    localStream = stream
+    localVideo.srcObject = localStream
+})
+
 // view elements:
 
 const localVideo = document.getElementById('localVideo')
@@ -89,12 +101,22 @@ function handleConnection(event) {
 function startAction() {
 
     startButton.disabled = true
+    // navigator
+    //     .mediaDevices
+    //     .getUserMedia(constraints)
+    //     .then(getLocalMediaStream)
+    //     .then(() => {
+    //         callButton.disabled = false
+    //     })
+    //     .catch(handleMediaStreamError)
+
+
     navigator
         .mediaDevices
         .getUserMedia(constraints)
-        .then(getLocalMediaStream)
-        .then(() => {
+        .then(stream => {
             callButton.disabled = false
+            eventEmitter.emit('getUserMediaSuccess', stream)
         })
         .catch(handleMediaStreamError)
 }
@@ -128,7 +150,7 @@ function createdOffer(description) {
 }
 
 function handleConnectionChange(event) {
-    
+
 }
 
 function callAction() {
@@ -143,8 +165,8 @@ function callAction() {
     localPeerConnection = new RTCPeerConnection(servers)
 
     localPeerConnection.addEventListener('icecandidate', handleConnection)
- localPeerConnection.addEventListener(
-    'iceconnectionstatechange', handleConnectionChange)
+    localPeerConnection.addEventListener(
+        'iceconnectionstatechange', handleConnectionChange)
 
 
     remotePeerConnection = new RTCPeerConnection(servers)
