@@ -2,12 +2,13 @@
   "name": "websocket-webrtc",
   "version": "0.1.0",
   "scripts": {
+    "build": "bsb -make-world && webpack",
     "serve:client": "http-server samples/client --ssl -c-1",
     "serve:server": "nodemon samples/server/index.js",
-    "build": "webpack",
+    "serve": "pm2 dist/samples/server/index.js && http-server dist/samples/client --ssl -c-1",
     "watch": "watch webpack",
     "clean:bs": "bsb -clean-world",
-    "build:bs": "bsb -make-world",
+    "build:bs": "",
     "watch:bs": "bsb -make-world -w"
   },
   "keywords": [
@@ -21,6 +22,7 @@
   "license": "MIT",
   "devDependencies": {
     "bs-platform": "^5.0.6",
+    "chokidar": "^3.0.2",
     "http-server": "^0.11.1",
     "nodemon": "^1.19.1",
     "webpack": "^4.35.3",

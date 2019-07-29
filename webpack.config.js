@@ -1,10 +1,11 @@
 const path = require('path');
 
 module.exports = {
-  entry: './samples/qiniu_voice_group_chat/js/main.js',
+  mode: 'production',
+  entry: './src/samples/qiniu-rtn/client/js/main.js',
   output: {
     filename: 'main.js',
-    path: path.resolve(__dirname, 'samples/qiniu_voice_group_chat/dist')
+    path: path.resolve(__dirname, 'dist/samples/qiniu-rtn/client/js')
   },
-  devtool: 'inline-source-map'
+  // devtool: 'inline-source-map'
 };

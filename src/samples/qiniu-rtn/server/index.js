@@ -1,5 +1,7 @@
 // websocket
 
+const common = require('common')
+
 const EventEmitter = require('events')
 
 const eventEmitter = new EventEmitter();
