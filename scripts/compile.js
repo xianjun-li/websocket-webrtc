@@ -28,7 +28,7 @@ watcher.on('ready', () => {
     watcher.on('all', (action, change_path) => {
         change_path = Path.resolve(change_path)
         const relative_path = Path.relative(project_path, change_path)
-        console.log(`\n ${relative_path} ${action} : \n`)
+        console.log(`\n${action} ${relative_path}`)
 
         let match_sub_module = null
         // todo match sub_module
@@ -43,12 +43,12 @@ watcher.on('ready', () => {
         })
 
         if (match_sub_module) {
-            console.log(match_sub_module)
+            console.log(`match module: ${match_sub_module.name}`)
             // run sub_module tasks
             match_sub_module.onchange(change_path, action)
+        } else {
+            // todo 通配
         }
-
-
     })
 })
 

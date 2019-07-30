@@ -1,0 +1,1 @@
+pm2 `http-server  dist/samples/qiniu-rtn/client --ssl -c-1` --name static-server 

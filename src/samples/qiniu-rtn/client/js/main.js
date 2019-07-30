@@ -1,5 +1,16 @@
-import jsonwebtoken from 'jsonwebtoken'
+// import jsonwebtoken from 'jsonwebtoken'
 
+// import { TrackModeSession, deviceManager, version } from "pili-rtc-web"
+import * as QNRTC from "pili-rtc-web"
+
+// todo global var [QNRTC] <- webpack
+window.QNRTC = QNRTC
+console.log("current version is", QNRTC.version)
+
+window.ROOMTOKEN_1 = process.env.ROOMTOKEN_1
+console.log("room token", process.env.ROOMTOKEN_1)
+
+/*
 function genJwtToken() {
     const token = jsonwebtoken.sign({ foo: 'bar' }, 'ssssss')
     return token
@@ -45,3 +56,5 @@ let timer = setInterval(() => {
         n++
     }
 }, 500)
+*/
+
