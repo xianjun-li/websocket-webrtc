@@ -4,52 +4,71 @@
 <head>
     <meta charset="utf-8">
     <title>Publish Stream</title>
+    <style>
+        .controllers .btn {
+            display: inline-block;
+            margin: 1vh 1vw;
+        }
+
+    </style>
 </head>
 
 <body>
-    <p>Local Stream</p>
+    <p>本地音视频轨</p>
+    <div id="localtracks" style="width: 640px;"></div>
 
-    <div id="localstream"></div>
+    <div class="controllers">
+        <button class="btn" onclick="joinRoom('user1')">user1加入房间</button>
+        <button class="btn" onclick="joinRoom('user2')">user2加入房间</button>
+        <button class="btn" onclick="joinRoom('user3')">user3加入房间</button>
+        <button class="btn" onclick="joinRoom('user4')">user4加入房间</button>
+    </div>
 
-    <button onclick="joinRoom()">join Room</button>
 </body>
 <script src="./js/main.js"></script>
 <script>
-    ROOMTOKEN_1 = 'oHEJHbZHtKO5Jwf1lQoOrKI4rQNf0Mk2QCQNnrSW:6pun4RU8eIVe9Zd1eCFMNK_rTKY=:eyJhcHBJZCI6ImVjbGJkbWd6YiIsInJvb21OYW1lIjoicm9vbTEiLCJ1c2VySWQiOiJ1c2VyMSIsImV4cGlyZUF0IjoxNTY0NTY4NzU5LCJwZXJtaXNzaW9uIjoidXNlciJ9'
     // 确认引入成功
-    console.log("current version", QNRTC.version);
+    console.log("current version", QNRTC.version)
 
-    // 这里采用的是 async/await 的异步方案，您也可以根据需要或者习惯替换成 Promise 的写法
-    async function joinRoom() {
-        // 初始化一个房间 Session 对象, 这里使用 Stream 模式
-        const myRoom = new QNRTC.StreamModeSession();
-        // 这里替换成刚刚生成的 RoomToken
-        await myRoom.joinRoomWithToken(ROOMTOKEN_1);
-        console.log("joinRoom success!");
+    async function joinRoom(username) {
+        console.log(`${username} join room:`)
+
+        const myRoom = await joinRoomWithToken('track', getRoomToken(username))
+        console.log('room', myRoom)
+        console.log('join room success')
 
         await publish(myRoom)
-
-
     }
+
 
     // 增加一个函数 publish，用于采集并发布自己的媒体流
     // 这里的参数 myRoom 是指刚刚加入房间时初始化的 Session 对象
     async function publish(myRoom) {
-        // 调用采集模块采集本地的音频和视频数据，返回一个包含这些数据的 Stream 对象
-        const localStream = await QNRTC.deviceManager.getLocalStream({
-            audio: { enabled: true },
-            video: { enabled: true },
+        console.log('publish start:')
+        // 我们打开了 3 个参数，即采集音频，采集视频，采集屏幕共享。
+        // 这个函数会返回一个列表，列表中每一项就是一个音视频轨对象
+        const localTracks = await QNRTC.deviceManager.getLocalTracks({
+            audio: { enabled: true, tag: "audio" },
+            video: { enabled: true, tag: "video" },
+            // screen: { enabled: true, tag: "screen" },
         });
-        // 将刚刚的 Stream 对象发布到房间中
-        await myRoom.publish(localStream);
+        console.log("my local tracks", localTracks);
+        // 将刚刚的 Track 列表发布到房间中
+        await myRoom.publish(localTracks);
         console.log("publish success!");
 
-        // 获取页面上的一个元素作为播放画面的父元素
-        const localElement = document.getElementById("localstream");
-        // 调用 Stream 对象的 play 方法在这个元素下播放媒体流，其中第二个参数代表 静音播放
-        localStream.play(localElement, true);
-    }
 
+        // 在这里添加
+        // 获取页面上的一个元素作为播放画面的父元素
+        const localElement = document.getElementById("localtracks");
+        // 遍历本地采集的 Track 对象
+        for (const localTrack of localTracks) {
+            // 如果这是麦克风采集的音频 Track，我们就不播放它。
+            if (localTrack.info.tag === "audio") continue;
+            // 调用 Track 对象的 play 方法在这个元素下播放视频轨
+            localTrack.play(localElement, true);
+        }
+    }
 </script>
 
 </html>
