@@ -10,10 +10,14 @@ module.exports = {
     filename: 'main.js',
     path: path.resolve(__dirname, 'dist/samples/qiniu-rtn/client/js')
   },
+  resolve: {
+    alias: {
+      'vue$': 'vue/dist/vue.esm.js' // 用 webpack 1 时需用 'vue/dist/vue.common.js'
+    }
+  },
   plugins: [
     new Dotenv(),
     new vConsolePlugin({
-      filter: [],  // 需要过滤的入口文件
       enable: true // 发布代码前记得改回 false
     }),
     new CopyPlugin([

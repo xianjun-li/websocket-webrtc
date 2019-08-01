@@ -1,13 +1,13 @@
+// imports
+import * as QNRTC from "pili-rtc-web"
+import Vue from 'vue'
+// const vConsole = require("vconsole")
+import vConsole from 'vconsole'
 // import jsonwebtoken from 'jsonwebtoken'
 
-// import { TrackModeSession, deviceManager, version } from "pili-rtc-web"
-import * as QNRTC from "pili-rtc-web"
-
-const vConsole = require("vconsole")
-
-// const vconsole = new vConsole()
-
-// todo global var [QNRTC] <- webpack
+// name binding to global
+global.vConsole = vConsole
+global.Vue = Vue
 global.QNRTC = QNRTC
 
 global.ROOMTOKEN_1 = process.env.ROOMTOKEN_1
@@ -37,8 +37,6 @@ global.joinRoomWithToken = async function (joinType, token) {
 
     return myRoom
 }
-
-
 
 /*
 function genJwtToken() {

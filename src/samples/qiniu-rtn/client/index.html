@@ -1,10 +1,76 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="utf-8">
-    </head>
-    <body>
-        hello
-    </body>
-    <script src="./js/main.js"></script>
+
+<head>
+    <meta charset="utf-8">
+    <style>
+        #login .btn {
+            display: inline-block;
+            margin: 1vh 1vw;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <h1>{{ app_name }}</h1>
+        <!-- login -->
+        <div id="login">
+            <p>选择用户:</p>
+            <button v-for="user in users" v-on:click="login( user.name )" v-bind:disabled="user.status === 0"
+                class="btn">{{ user.name }}</button>
+        </div>
+        <!-- /login -->
+    </div>
+</body>
+<script src="./js/main.js"></script>
+<script>
+    function login(username) {
+        alert(username)
+    }
+
+    window.onload = function () {
+
+        if (typeof vConsole !== undefined) {
+            const vconsole = new vConsole()
+        }
+
+        // // websocket connection
+        const ws_url = 'ws://localhost:3000'
+
+        // // @todo 自定义子协议
+        const ws_protocols = []
+
+        const ws = new WebSocket(ws_url, ws_protocols)
+        console.log(ws)
+        ws.addEventListener('open', event => {
+            ws.send('hello')
+        })
+
+        // 测试websocket 连接数
+        // for (let i = 0; i < 10000; i++) {
+        //     let ws = new WebSocket(ws_url)
+        //     ws.addEventListener('open', event => {
+        //         ws.send('hello')
+        //     })
+        // }
+
+        var app = new Vue({
+            // 选项
+            el: '#app',
+            data: {
+                app_name: 'upfm',
+                users: [
+                    { name: 'user1', status: 1 },
+                    { name: 'user2', status: 0 },
+                    { name: 'user3', status: 0 },
+                    { name: 'user4', status: 0 },
+                ]
+            }
+        })
+        window.app = app
+    }
+
+</script>
+
 </html>
