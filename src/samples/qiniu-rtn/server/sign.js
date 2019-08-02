@@ -1,8 +1,10 @@
+
+const UrlParser = require('url')
 const EventEmitter = require('events')
-
+// http server lib
 const Koa = require('koa')
-
-const WebSocket = require('ws');
+// websocket server lib
+const WebSocket = require('ws')
 
 function isJSON(str) {
     return new Promise(
@@ -10,128 +12,85 @@ function isJSON(str) {
     )
 }
 
+const eventEmitter = new EventEmitter()
 const koaApp = new Koa()
-
-let server = koaApp.listen(3000)
-
-let wsServer = new WebSocket.Server({ server })
+const httpServer = koaApp.listen(3000)
+const wsServer = new WebSocket.Server({ server: httpServer })
 
 const feaure = {
-    auth: false
+    auth: true
 }
 
-koaApp.use(async ctx => {
-    ctx.body = 'hello world'
-})
+// koaApp.use(async ctx => {
+//     ctx.body = 'hello world'
+// })
 
-const eventEmitter = new EventEmitter();
-
+// req : http.IncomingMessage
 wsServer.on('connection', (socket, req) => {
-    // setListeners({ ws, feaure, eventEmitter })
-    const ctx = {
-        socket,
-        req,
-        feaure
+
+    // check req
+    const url = req.url
+    const url_info = UrlParser.parse(url, true)
+
+    if (typeof url_info.query['token'] === 'undefined') {
+        socket.terminate()
+        return
     }
-    // todo 按room分为不同的channel
+
+    const auth_token = url_info.query['token']
+
+    const req_headers = req.headers
+
+    // todo 检查 auth_token
+
+    const ctx = {
+        feaure,
+        socket,
+        req_headers,
+        url_info,
+        auth_token
+    }
+
     eventEmitter.emit('socket.connection', ctx)
-})
-
-// event handles
-eventEmitter.on('socket.connection', ctx => {
-
-    let socket = ctx.socket
-
-    socket.send('connection')
 
     socket.on('message', message => {
         eventEmitter.emit('socket.message', [ctx, message])
     })
-
-    // if (typeof feaure.auth !== 'undefined' && feaure.auth === true) {
-    //     eventEmitter.emit('check_auth', ctx)
-    // }
-
-    // 销毁
-
 })
 
-eventEmitter.on('socket.message', ([ctx, message]) => {
-    console.log(message)
-})
-
-eventEmitter.on('socket.auth', ([ctx, message]) => {
-    console.log(message)
-})
-
-eventEmitter.on('socket.time_out', ([ctx, message]) => {
-    console.log(message)
+// event handles
+eventEmitter.on('socket.connection', ctx => {
+    ctx.socket.send('connected')
 })
 
 // todo 心跳检测
 
 // todo broadcast
 
+eventEmitter.on('socket.message', ([ctx, message]) => {
 
-function setListeners(ctx) {
-    const ws = ctx.ws
-    const feaure = ctx.feaure;
-    const eventEmitter = ctx.eventEmitter;
+    let req_type = null
 
+    message = JSON.parse(message)
 
-
-    eventEmitter.on('socket_binding', ctx => {
-        ctx.on('message', (message) => {
-            ctx.send(`pong: ${message}`)
-            console.log(message)
-
-            isJSON(message)
-                .then(obj => {
-                    if (typeof obj.action !== 'undefined'
-                        && obj.action === 'auth'
-                        && typeof feaure.auth !== 'undefined'
-                        && feaure.auth === true
-                    ) {
-                        eventEmitter.emit('auth', messageObj)
-                    }
-                })
-        })
-    })
-
-    /*
-    // auth
-    let authed = false
-    let timer = null
-    let max_time = 5000
-    eventEmitter.on('check_auth', ctx => {
-        console.log('check_auth')
-        if(authed !== true) {
-            if(timer === null) {
-                timer = setInterval(() => {
-                    if(max_time <= 0) {
-                        wsServer.close()
-                        clearInterval(timer)
-                    } else {
-                        max_time -= 50
-                    }
-                }, 50)
-            }
+    if (typeof message.type !== 'undefined') {
+        req_type = message.type
+    } else {
+        if (typeof message.action !== 'undefined') {
+            req_type = 'action'
         }
-    })
+    }
 
-    eventEmitter.on('auth', ctx => {
-        console.log('auth')
-        if(max_time >0) {
-            console.log('auth success')
-            // @todo 根据type使用不用的验证方式,type不匹配时验证失败;指定的验证方式验证失败时,验证失败;默认使用jwt(json web token)方式
-            authed = true
-            if(timer !== null) {
-                clearInterval(timer)
-            }
-        }
-    })
-    */
+    if (req_type === 'action') {
+        const action_name = message.action
+        console.log(action_name)
+        const data = typeof message.data !== 'undefined' ? message.data : {}
 
-    // todo broadcast
-}
+        eventEmitter.emit(action_name, { ctx, data })
+    }
+})
 
+eventEmitter.on('getRoomToken', ({ ctx, data }) => {
+    // todo
+    ctx.socket.send('haha')
+})
