@@ -4,7 +4,8 @@ const chokidar = require('chokidar')
 
 // path
 const current_path = __dirname
-const project_path = process.env.PWD
+// process.env.PWD
+const project_path = Path.resolve(Path.join(current_path, '../'))
 const src_path = Path.join(project_path, 'src')
 const dist_path = Path.join(project_path, 'dist')
 
