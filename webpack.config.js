@@ -11,6 +11,10 @@ module.exports = {
     path: path.resolve(__dirname, 'dist/samples/qiniu-rtn/client/js')
   },
   resolve: {
+    modules: [
+      path.resolve('./node_modules'),
+      path.resolve('./src'),
+    ],
     alias: {
       'vue$': 'vue/dist/vue.esm.js' // 用 webpack 1 时需用 'vue/dist/vue.common.js'
     }
