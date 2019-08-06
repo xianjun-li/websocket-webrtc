@@ -5,6 +5,9 @@ const EventEmitter = require('events')
 const Koa = require('koa')
 // websocket server lib
 const WebSocket = require('ws')
+// qiniu sdk
+const qiniu = require('qiniu')
+const dotenv = require('dotenv')
 
 function isJSON(str) {
     return new Promise(
@@ -12,14 +15,32 @@ function isJSON(str) {
     )
 }
 
+function response(socket, data, type) {
+    if (typeof data === 'object') {
+        data = JSON.stringify(data)
+    }
+    socket.send(data)
+}
+
 const eventEmitter = new EventEmitter()
 const koaApp = new Koa()
 const httpServer = koaApp.listen(3000)
 const wsServer = new WebSocket.Server({ server: httpServer })
 
+
+// config and setting
+const _env_data = dotenv.config()
+const env_data = _env_data.error ? {} : _env_data.parsed
+
+console.log(env_data.rtn_app_id)
+
 const feaure = {
     auth: true
 }
+
+const qiniu_ak = env_data.qiniu_ak
+const qiniu_sk = env_data.qiniu_ak
+const qiniu_credentials = new qiniu.Credentials(qiniu_ak, qiniu_sk)
 
 // koaApp.use(async ctx => {
 //     ctx.body = 'hello world'
@@ -60,7 +81,11 @@ wsServer.on('connection', (socket, req) => {
 
 // event handles
 eventEmitter.on('socket.connection', ctx => {
-    ctx.socket.send('connected')
+    // app info
+    const app_info = {
+        app_id: env_data.rtn_app_id
+    }
+    ctx.socket.send(JSON.stringify(app_info))
 })
 
 // todo 心跳检测
@@ -87,10 +112,13 @@ eventEmitter.on('socket.message', ([ctx, message]) => {
         const data = typeof message.data !== 'undefined' ? message.data : {}
 
         eventEmitter.emit(action_name, { ctx, data })
+    } else {
+        ctx.socket.send('pong')
     }
 })
 
 eventEmitter.on('getRoomToken', ({ ctx, data }) => {
     // todo
-    ctx.socket.send('haha')
+    const token = ''
+    response(ctx.socket, 'token')
 })

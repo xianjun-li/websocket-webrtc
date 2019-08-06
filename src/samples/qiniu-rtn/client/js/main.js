@@ -1,14 +1,24 @@
 // imports
+// buildin
+import Path from 'path'
 import * as QNRTC from "pili-rtc-web"
 import Vue from 'vue'
 // const vConsole = require("vconsole")
 import vConsole from 'vconsole'
 // import jsonwebtoken from 'jsonwebtoken'
 
+import * as SignServer from 'rtn/sign'
+
 // name binding to global
 global.vConsole = vConsole
 global.Vue = Vue
 global.QNRTC = QNRTC
+global.SignServer = SignServer
+
+// config
+const sign_server_host = 'ws://localhost:3000'
+
+SignServer.setDefaultHost(sign_server_host)
 
 global.ROOMTOKEN_1 = process.env.ROOMTOKEN_1
 global.ROOMTOKEN_2 = process.env.ROOMTOKEN_2
@@ -85,4 +95,3 @@ let timer = setInterval(() => {
     }
 }, 500)
 */
-

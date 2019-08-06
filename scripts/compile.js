@@ -32,9 +32,6 @@ const src_path = Path.join(project_path, 'src')
 const webpack_config_path = Path.join(project_path, 'webpack.config.js')
 const webpack_config = require(webpack_config_path)
 
-// console.log(webpack_config_path)
-// console.log(webpack_config)
-
 const compiler = webpack(webpack_config)
 
 set_change_handler(src_path, (action, path) => {

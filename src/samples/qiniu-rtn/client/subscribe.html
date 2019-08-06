@@ -22,6 +22,20 @@
     // 确认引入成功
     console.log("current version", QNRTC.version);
 
+    const socket = SignServer.connection(SignServer.getDefaultHost(), null, {
+        onOpen: function (event) {
+            // const socket = event.target
+
+            SignServer.request({ method: 'getRoomToken', params: { username: 'user1' } })
+        },
+        onClose: function (event) {
+
+        },
+        onMessage: function (event) {
+
+        },
+    })
+
     async function joinRoom(username) {
         console.log(`${username} join room:`)
 

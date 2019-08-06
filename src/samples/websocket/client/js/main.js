@@ -11,12 +11,9 @@ media api:
 
 const eventEmitter = new EventEmitter
 
-console.log(eventEmitter)
-
 // 订阅事件
 
 eventEmitter.addListener('getUserMediaSuccess', (event) => {
-    console.log(event)
     localStream = stream
     localVideo.srcObject = localStream
 })
