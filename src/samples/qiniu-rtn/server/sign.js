@@ -93,32 +93,61 @@ eventEmitter.on('socket.connection', ctx => {
 // todo broadcast
 
 eventEmitter.on('socket.message', ([ctx, message]) => {
-
     let req_type = null
 
-    message = JSON.parse(message)
+    try {
+        const data = JSON.parse(message)
+        if (data["method"] !== undefined) {
+            const method = data.method
+            const params = (data["params"] !== undefined ? data.params : {})
+            const id = (data["id"] !== 'undefined' ? data.id : null)
 
-    if (typeof message.type !== 'undefined') {
-        req_type = message.type
-    } else {
-        if (typeof message.action !== 'undefined') {
-            req_type = 'action'
+            eventEmitter.emit(method, { ctx, params, id })
+        } else {
+            eventEmitter.emit('error', { ctx, error: { message: "请求无method参数" }, id })
         }
-    }
-
-    if (req_type === 'action') {
-        const action_name = message.action
-        console.log(action_name)
-        const data = typeof message.data !== 'undefined' ? message.data : {}
-
-        eventEmitter.emit(action_name, { ctx, data })
-    } else {
-        ctx.socket.send('pong')
+    } catch (error) {
+        eventEmitter.emit('error', { ctx, error: { message: "json解析错误" }, id })
+        return
     }
 })
 
-eventEmitter.on('getRoomToken', ({ ctx, data }) => {
-    // todo
-    const token = ''
-    response(ctx.socket, 'token')
+eventEmitter.on('getRoomToken', ({ ctx, params, id }) => {
+
+    if (params['username'] === undefined || params['roomname'] === undefined) {
+        const error = {
+            message: '用户名或房间号为空'
+        }
+        eventEmitter.emit('error', { ctx, error, id })
+    } else {
+        const username = params.username
+        const roomname = params.roomname
+
+        // todo
+        const token = 'dddddddddd'
+
+        const data = {
+            result: { roomtoken: token },
+            id,
+        }
+
+        ctx.socket.send(JSON.stringify(data))
+    }
+})
+
+eventEmitter.on('error', ({ ctx, error, id }) => {
+
+    if (error['code'] === undefined) {
+        error.code = -32000
+    }
+
+    if (error['message'] === undefined) {
+        error.message = ''
+    }
+
+    if (error['data'] === undefined) {
+        error.data = {}
+    }
+
+    ctx.socket.send(JSON.stringify(error, id))
 })

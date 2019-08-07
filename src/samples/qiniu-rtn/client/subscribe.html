@@ -25,13 +25,25 @@
     const socket = SignServer.connection(SignServer.getDefaultHost(), null, {
         onOpen: function (event) {
             // const socket = event.target
-
-            SignServer.request({ method: 'getRoomToken', params: { username: 'user1' } })
+            const { id } = SignServer.request({ method: 'getRoomToken', params: { username: 'user1', roomname: 'room1' } })
         },
-        onClose: function (event) {
 
-        },
         onMessage: function (event) {
+            const data = JSON.parse(event.data)
+
+            if (typeof data.id !== 'undefined') {
+                const id = data.id
+                if (typeof data.error === 'undefined') {
+                    SignServer.setIdStatus(id, 0)
+                } else {
+                    SignServer.setIdStatus(id, 1)
+                }
+
+                console.log('status:' + SignServer.getIdStatus(id))
+            }
+        },
+
+        onClose: function (event) {
 
         },
     })

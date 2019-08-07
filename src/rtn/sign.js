@@ -1,3 +1,5 @@
+import { observable, autorun } from 'mobx'
+
 let default_host = null
 let socket = null
 
@@ -20,7 +22,7 @@ function connection(host, protocols, options) {
     }
 
     let url = `${host}?token=123456`
-    
+
     socket = protocols === '' ? (new WebSocket(url)) : (new WebSocket(url, protocols))
 
     // 绑定事件
@@ -41,8 +43,35 @@ function close() {
     socket = null
 }
 
-function request(data) {
-    return socket.send(typeof data === 'string' ? data : JSON.stringify(data))
+let id_flag = 0
+
+let idStatus = new Map()
+let observers = []
+
+function newId() {
+    id_flag += 1
+    return id_flag
 }
 
-export { getDefaultHost, setDefaultHost, connection, close, request }
+function getIdStatus(id) {
+    return idStatus.get(id)
+}
+
+function setIdStatus(id, value) {
+    return idStatus.set(id, value)
+}
+
+function request(data, ack) {
+    const id = newId()
+    setIdStatus(id, -1)
+    data.id = id
+
+    if(ack) {
+        // todo observe idStatus
+    }
+
+    socket.send(typeof data === 'string' ? data : JSON.stringify(data))
+    return { id }
+}
+
+export { getDefaultHost, setDefaultHost, connection, close, request, setIdStatus, getIdStatus }
