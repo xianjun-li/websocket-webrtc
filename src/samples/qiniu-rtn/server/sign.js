@@ -38,9 +38,7 @@ const feaure = {
     auth: true
 }
 
-const qiniu_ak = env_data.qiniu_ak
-const qiniu_sk = env_data.qiniu_ak
-const qiniu_credentials = new qiniu.Credentials(qiniu_ak, qiniu_sk)
+
 
 // koaApp.use(async ctx => {
 //     ctx.body = 'hello world'
@@ -80,13 +78,13 @@ wsServer.on('connection', (socket, req) => {
 })
 
 // event handles
-eventEmitter.on('socket.connection', ctx => {
-    // app info
-    const app_info = {
-        app_id: env_data.rtn_app_id
-    }
-    ctx.socket.send(JSON.stringify(app_info))
-})
+// eventEmitter.on('socket.connection', ctx => {
+//     // app info
+//     const app_info = {
+//         app_id: env_data.rtn_app_id
+//     }
+//     ctx.socket.send(JSON.stringify(app_info))
+// })
 
 // todo 心跳检测
 
@@ -96,7 +94,9 @@ eventEmitter.on('socket.message', ([ctx, message]) => {
     let req_type = null
 
     try {
+        console.log('message', message)
         const data = JSON.parse(message)
+
         if (data["method"] !== undefined) {
             const method = data.method
             const params = (data["params"] !== undefined ? data.params : {})
@@ -104,10 +104,11 @@ eventEmitter.on('socket.message', ([ctx, message]) => {
 
             eventEmitter.emit(method, { ctx, params, id })
         } else {
-            eventEmitter.emit('error', { ctx, error: { message: "请求无method参数" }, id })
+            eventEmitter.emit('error', { ctx, error: { message: "请求无method参数" } })
         }
     } catch (error) {
-        eventEmitter.emit('error', { ctx, error: { message: "json解析错误" }, id })
+        console.log('error', error)
+        eventEmitter.emit('error', { ctx, error: { message: "json解析错误" } })
         return
     }
 })
@@ -123,11 +124,21 @@ eventEmitter.on('getRoomToken', ({ ctx, params, id }) => {
         const username = params.username
         const roomname = params.roomname
 
-        // todo
-        const token = 'dddddddddd'
+        const app_id = env_data.rtn_app_id
+        const qiniu_ak = env_data.qiniu_ak
+        const qiniu_sk = env_data.qiniu_sk
+        const qiniu_credentials = new qiniu.Credentials(qiniu_ak, qiniu_sk)
+
+        const token = qiniu.room.getRoomToken({
+            appId: app_id,
+            roomName: username,
+            userId: roomname,
+            expireAt: Date.now() + (1000 * 60 * 60 * 3), // token 的过期时间默认为当前时间之后 3 小时
+            permission: 'user',
+        }, qiniu_credentials)
 
         const data = {
-            result: { roomtoken: token },
+            result: { roomToken: token },
             id,
         }
 
@@ -149,5 +160,5 @@ eventEmitter.on('error', ({ ctx, error, id }) => {
         error.data = {}
     }
 
-    ctx.socket.send(JSON.stringify(error, id))
+    ctx.socket.send(JSON.stringify({ error, id }))
 })

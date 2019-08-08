@@ -7,36 +7,15 @@ import Vue from 'vue'
 import vConsole from 'vconsole'
 // import jsonwebtoken from 'jsonwebtoken'
 
-import * as SignServer from 'rtn/sign'
+import Client from 'websocket_jsonrpc/client'
+global.WebSocketRpcClient = Client
 
 // name binding to global
 global.vConsole = vConsole
 global.Vue = Vue
 global.QNRTC = QNRTC
-global.SignServer = SignServer
 
 // config
-const sign_server_host = 'ws://localhost:3000'
-
-SignServer.setDefaultHost(sign_server_host)
-
-global.ROOMTOKEN_1 = process.env.ROOMTOKEN_1
-global.ROOMTOKEN_2 = process.env.ROOMTOKEN_2
-global.ROOMTOKEN_3 = process.env.ROOMTOKEN_3
-global.ROOMTOKEN_4 = process.env.ROOMTOKEN_4
-
-global.getRoomToken = function (username, roomID) {
-    switch (username) {
-        case 'user1':
-            return ROOMTOKEN_1;
-        case 'user2':
-            return ROOMTOKEN_2;
-        case 'user3':
-            return ROOMTOKEN_3;
-        case 'user4':
-            return ROOMTOKEN_4;
-    }
-}
 
 global.joinRoomWithToken = async function (joinType, token) {
     const method = `${joinType[0].toUpperCase()}${joinType.slice(1)}ModeSession`

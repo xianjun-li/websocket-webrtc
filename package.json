@@ -27,6 +27,7 @@
     "webpack-cli": "^3.3.5"
   },
   "dependencies": {
+    "events": "^3.0.0",
     "jsonwebtoken": "^8.5.1",
     "koa": "^2.7.0",
     "live-server": "^1.2.1",
