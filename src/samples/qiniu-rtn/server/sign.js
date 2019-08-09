@@ -1,6 +1,8 @@
-
 const UrlParser = require('url')
 const EventEmitter = require('events')
+const https = require('https')
+const fs = require('fs')
+const path = require('path')
 // http server lib
 const Koa = require('koa')
 // websocket server lib
@@ -23,10 +25,21 @@ function response(socket, data, type) {
 }
 
 const eventEmitter = new EventEmitter()
-const koaApp = new Koa()
-const httpServer = koaApp.listen(3000)
-const wsServer = new WebSocket.Server({ server: httpServer })
+const app = new Koa()
 
+const https_options = {
+    port: 3000,
+    cert: fs.readFileSync(path.resolve(path.join(__dirname, '/../../../../cert.pem'))).toString(),
+    key: fs.readFileSync(path.resolve(path.join(__dirname, '/../../../../key.pem'))).toString()
+}
+// console.log(https_options)
+
+const webServer = https.createServer(https_options, app.callback()).listen(3000)
+// const webServer = app.listen(3000)
+
+const wsServer = new WebSocket.Server({
+    server: webServer
+})
 
 // config and setting
 const _env_data = dotenv.config()
@@ -38,11 +51,9 @@ const feaure = {
     auth: true
 }
 
-
-
-// koaApp.use(async ctx => {
-//     ctx.body = 'hello world'
-// })
+app.use(async ctx => {
+    ctx.body = 'Hello World'
+})
 
 // req : http.IncomingMessage
 wsServer.on('connection', (socket, req) => {
@@ -97,29 +108,51 @@ eventEmitter.on('socket.message', ([ctx, message]) => {
         console.log('message', message)
         const data = JSON.parse(message)
 
-        if (data["method"] !== undefined) {
+        if (data['method'] !== undefined) {
             const method = data.method
-            const params = (data["params"] !== undefined ? data.params : {})
-            const id = (data["id"] !== 'undefined' ? data.id : null)
+            const params = (data['params'] !== undefined ? data.params : {})
+            const id = (data['id'] !== 'undefined' ? data.id : null)
 
-            eventEmitter.emit(method, { ctx, params, id })
+            eventEmitter.emit(method, {
+                ctx,
+                params,
+                id
+            })
         } else {
-            eventEmitter.emit('error', { ctx, error: { message: "请求无method参数" } })
+            eventEmitter.emit('error', {
+                ctx,
+                error: {
+                    message: '请求无method参数'
+                }
+            })
         }
     } catch (error) {
         console.log('error', error)
-        eventEmitter.emit('error', { ctx, error: { message: "json解析错误" } })
+        eventEmitter.emit('error', {
+            ctx,
+            error: {
+                message: 'json解析错误'
+            }
+        })
         return
     }
 })
 
-eventEmitter.on('getRoomToken', ({ ctx, params, id }) => {
+eventEmitter.on('getRoomToken', ({
+    ctx,
+    params,
+    id
+}) => {
 
     if (params['username'] === undefined || params['roomname'] === undefined) {
         const error = {
             message: '用户名或房间号为空'
         }
-        eventEmitter.emit('error', { ctx, error, id })
+        eventEmitter.emit('error', {
+            ctx,
+            error,
+            id
+        })
     } else {
         const username = params.username
         const roomname = params.roomname
@@ -134,19 +167,25 @@ eventEmitter.on('getRoomToken', ({ ctx, params, id }) => {
             roomName: username,
             userId: roomname,
             expireAt: Date.now() + (1000 * 60 * 60 * 3), // token 的过期时间默认为当前时间之后 3 小时
-            permission: 'user',
+            permission: 'user'
         }, qiniu_credentials)
 
         const data = {
-            result: { roomToken: token },
-            id,
+            result: {
+                roomToken: token
+            },
+            id
         }
 
         ctx.socket.send(JSON.stringify(data))
     }
 })
 
-eventEmitter.on('error', ({ ctx, error, id }) => {
+eventEmitter.on('error', ({
+    ctx,
+    error,
+    id
+}) => {
 
     if (error['code'] === undefined) {
         error.code = -32000
@@ -160,5 +199,8 @@ eventEmitter.on('error', ({ ctx, error, id }) => {
         error.data = {}
     }
 
-    ctx.socket.send(JSON.stringify({ error, id }))
+    ctx.socket.send(JSON.stringify({
+        error,
+        id
+    }))
 })
