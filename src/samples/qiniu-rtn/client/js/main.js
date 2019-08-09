@@ -1,9 +1,9 @@
 // imports
 // buildin
 import Path from 'path'
+// libs
 import * as QNRTC from "pili-rtc-web"
 import Vue from 'vue'
-// const vConsole = require("vconsole")
 import vConsole from 'vconsole'
 // import jsonwebtoken from 'jsonwebtoken'
 
@@ -16,6 +16,7 @@ global.Vue = Vue
 global.QNRTC = QNRTC
 
 // config
+global.sign_server_host = process.env.sign_server_host
 
 global.joinRoomWithToken = async function (joinType, token) {
     const method = `${joinType[0].toUpperCase()}${joinType.slice(1)}ModeSession`
@@ -32,8 +33,6 @@ function genJwtToken() {
     const token = jsonwebtoken.sign({ foo: 'bar' }, 'ssssss')
     return token
 }
-
-const ws_url = 'ws://localhost:3000'
 
 // @todo 自定义子协议
 const ws_protocols = []

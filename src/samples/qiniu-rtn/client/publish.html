@@ -1,97 +1,109 @@
 <!DOCTYPE html>
 <html>
 
-<head>
-    <meta charset="utf-8">
-    <title>Publish Stream</title>
-    <style>
-        .controllers .btn {
-            display: inline-block;
-            margin: 1vh 1vw;
-        }
-    </style>
-</head>
+    <head>
+        <meta charset="utf-8">
+        <title>Publish Stream</title>
+        <style>
+            .controllers .btn {
+                display: inline-block;
+                margin: 1vh 1vw;
+            }
+        </style>
+    </head>
 
-<body>
-    <p>本地音视频轨</p>
-    <div id="localtracks" style="width: 640px;"></div>
+    <body>
+        <p>本地音视频轨</p>
+        <div id="localtracks" style="width: 640px;"></div>
 
-    <div class="controllers">
+        <div class="controllers">
         用户:<input type="text" name="username">
         房间: <input type="text" name="roomname">
 
-        <div style="bottom: 1vh;"><button onclick="joinRoom()">进入房间</button><br></div>
-    </div>
+            <div style="bottom: 1vh;">
+                <button onclick="joinRoom()">进入房间</button><br></div>
+        </div>
 
-</body>
-<script src="./js/main.js"></script>
-<script>
-    // 确认引入成功
-    console.log("current version", QNRTC.version)
+    </body>
+    <script src="./js/main.js"></script>
+    <script>
+        // 确认引入成功
+        console.log("current version", QNRTC.version)
 
-    const webSocketRpcClient = new WebSocketRpcClient()
-    const socket = webSocketRpcClient.connection('ws://localhost:3000')
+        const webSocketRpcClient = new WebSocketRpcClient()
+        const socket = webSocketRpcClient.connection(sign_server_host)
 
-    async function joinRoom() {
+        async function joinRoom() {
 
-        const username = document.querySelector('[name="username"]').value
-        const roomname = document.querySelector('[name="roomname"]').value
+            const username = document
+                .querySelector('[name="username"]')
+                .value
+            const roomname = document
+                .querySelector('[name="roomname"]')
+                .value
 
-        if (username == '' || roomname == '') {
-            alert('用户或者房间名为空')
-            return
+                if (username == '' || roomname == '') {
+                    alert('用户或者房间名为空')
+                    return
+                }
+
+                console
+                .log(`${username} join room:`)
+
+            const {roomToken} = await webSocketRpcClient.send({
+                method: 'getRoomToken',
+                params: {
+                    username,
+                    roomname
+                }
+            }, true)
+
+            console.log(roomToken)
+
+            const myRoom = await joinRoomWithToken('track', roomToken)
+            console.log('room', myRoom)
+            console.log('join room success')
+
+            await publish(myRoom)
         }
 
-        console.log(`${username} join room:`)
+        // 增加一个函数 publish，用于采集并发布自己的媒体流
+        // 这里的参数 myRoom 是指刚刚加入房间时初始化的 Session 对象
+        async function publish(myRoom) {
+            console.log('publish start:')
+            // 我们打开了 3 个参数，即采集音频，采集视频，采集屏幕共享。
+            // 这个函数会返回一个列表，列表中每一项就是一个音视频轨对象
+            const localTracks = await QNRTC
+                .deviceManager
+                .getLocalTracks({
+                    audio: {
+                        enabled: true,
+                        tag: "audio"
+                    },
+                    video: {
+                        enabled: true,
+                        tag: "video"
+                    },
+                    // screen: { enabled: true, tag: "screen" },
+                });
+            console.log("my local tracks", localTracks);
+            // 将刚刚的 Track 列表发布到房间中
+            await myRoom.publish(localTracks);
+            console.log("publish success!");
 
-        const { roomToken } = await webSocketRpcClient.send(
-            { method: 'getRoomToken', params: { username, roomname } },
-            true
-        )
-
-        console.log(roomToken)
-
-        const myRoom = await joinRoomWithToken('track', roomToken)
-        console.log('room', myRoom)
-        console.log('join room success')
-
-        await publish(myRoom)
-    }
-
-    // 增加一个函数 publish，用于采集并发布自己的媒体流
-    // 这里的参数 myRoom 是指刚刚加入房间时初始化的 Session 对象
-    async function publish(myRoom) {
-        console.log('publish start:')
-        // 我们打开了 3 个参数，即采集音频，采集视频，采集屏幕共享。
-        // 这个函数会返回一个列表，列表中每一项就是一个音视频轨对象
-        const localTracks = await QNRTC
-            .deviceManager
-            .getLocalTracks({
-                audio: {
-                    enabled: true,
-                    tag: "audio"
-                },
-                video: { enabled: true, tag: "video" },
-                // screen: { enabled: true, tag: "screen" },
-            });
-        console.log("my local tracks", localTracks);
-        // 将刚刚的 Track 列表发布到房间中
-        await myRoom.publish(localTracks);
-        console.log("publish success!");
-
-        // 在这里添加
-        // 获取页面上的一个元素作为播放画面的父元素
-        const localElement = document.getElementById("localtracks");
-        // 遍历本地采集的 Track 对象
-        for (const localTrack of localTracks) {
-            // 如果这是麦克风采集的音频 Track，我们就不播放它。
-            if (localTrack.info.tag === "audio")
-                continue;
-
-            // 调用 Track 对象的 play 方法在这个元素下播放视频轨
-            localTrack.play(localElement, true);
+            // 在这里添加
+            // 获取页面上的一个元素作为播放画面的父元素
+            const localElement = document.getElementById("localtracks");
+            // 遍历本地采集的 Track 对象
+            for (const localTrack of localTracks) {
+                // 如果这是麦克风采集的音频 Track，我们就不播放它。
+                if (localTrack.info.tag === "audio") 
+                    continue;
+                
+                // 调用 Track 对象的 play 方法在这个元素下播放视频轨
+                localTrack.play(localElement, true);
+            }
         }
-    }
-</script>
+    </script>
 
 </html>
