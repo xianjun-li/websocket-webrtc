@@ -16,7 +16,7 @@ global.Vue = Vue
 global.QNRTC = QNRTC
 
 // config
-global.sign_server_host = process.env.sign_server_host
+global.sign_server_host =  process.env.sign_server_host
 
 global.joinRoomWithToken = async function (joinType, token) {
     const method = `${joinType[0].toUpperCase()}${joinType.slice(1)}ModeSession`

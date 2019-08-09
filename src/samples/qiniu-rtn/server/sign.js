@@ -3,6 +3,7 @@ const EventEmitter = require('events')
 const https = require('https')
 const fs = require('fs')
 const path = require('path')
+
 // http server lib
 const Koa = require('koa')
 // websocket server lib
@@ -15,13 +16,6 @@ function isJSON(str) {
     return new Promise(
         (resolve, reject) => resolve(JSON.parse(str))
     )
-}
-
-function response(socket, data, type) {
-    if (typeof data === 'object') {
-        data = JSON.stringify(data)
-    }
-    socket.send(data)
 }
 
 const eventEmitter = new EventEmitter()
@@ -164,8 +158,8 @@ eventEmitter.on('getRoomToken', ({
 
         const token = qiniu.room.getRoomToken({
             appId: app_id,
-            roomName: username,
-            userId: roomname,
+            roomName: roomname,
+            userId: username,
             expireAt: Date.now() + (1000 * 60 * 60 * 3), // token 的过期时间默认为当前时间之后 3 小时
             permission: 'user'
         }, qiniu_credentials)
