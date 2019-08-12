@@ -17,11 +17,12 @@
     <div id="localtracks" style="width: 640px;"></div>
 
     <div class="controllers">
-        用户:<input type="text" name="username">
+        用户: <input type="text" name="username">
         房间: <input type="text" name="roomname">
 
         <div style="bottom: 1vh;">
-            <button onclick="joinRoom()">进入房间</button><br></div>
+            <button onclick="joinRoom()">进入房间</button><br>
+        </div>
     </div>
 
 </body>
@@ -30,7 +31,12 @@
     // 确认引入成功
     console.log("current version", QNRTC.version)
 
-    const webSocketRpcClient = new WebSocketRpcClient()
+    if(detectWebRTC() !== true) {
+        alert('设备不支持webrtc')
+    } else {
+        confirm('我们将采集您的摄像头/麦克风数据并与房间其他用户进行音视频通话')
+    }
+
     const socket = webSocketRpcClient.connection(sign_server_host)
 
     async function joinRoom() {
@@ -62,8 +68,12 @@
         const myRoom = await joinRoomWithToken('track', roomToken)
         console.log('room', myRoom)
         console.log('join room success')
-
-        await publish(myRoom)
+        try {
+            await publish(myRoom)
+        } catch (error) {
+            console.log(error)
+            alert(error)
+        }
     }
 
     // 增加一个函数 publish，用于采集并发布自己的媒体流

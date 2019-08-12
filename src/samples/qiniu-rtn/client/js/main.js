@@ -16,14 +16,39 @@ global.Vue = Vue
 global.QNRTC = QNRTC
 
 // config
-global.sign_server_host =  process.env.sign_server_host
+global.sign_server_host = process.env.sign_server_host
+
+const webSocketRpcClient = new WebSocketRpcClient()
+global.webSocketRpcClient = webSocketRpcClient
+
+// 检测客户端是否支持webrtc
+global.detectWebRTC = function () {
+    const WEBRTC_CONSTANTS = ['RTCPeerConnection', 'webkitRTCPeerConnection', 'mozRTCPeerConnection', 'RTCIceGatherer'];
+
+    const isWebRTCSupported = WEBRTC_CONSTANTS.find((item) => {
+        return item in window;
+    })
+
+    const isGetUserMediaSupported = navigator && navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
+
+    if (!isWebRTCSupported || typeof isGetUserMediaSupported === 'undefined') {
+        return false
+    }
+
+    return true
+}
 
 global.joinRoomWithToken = async function (joinType, token) {
     const method = `${joinType[0].toUpperCase()}${joinType.slice(1)}ModeSession`
     // 初始化一个房间 Session 对象, 这里使用 Stream 模式
     const myRoom = new QNRTC[method]
     // 这里替换成刚刚生成的 RoomToken
-    await myRoom.joinRoomWithToken(token)
+    try {
+        await myRoom.joinRoomWithToken(token)
+    } catch (error) {
+        alert('error')
+        console.log(error)
+    }
 
     return myRoom
 }

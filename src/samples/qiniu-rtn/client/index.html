@@ -4,6 +4,10 @@
 <head>
     <meta charset="utf-8">
     <style>
+        header.main {
+            background-color: #eee;
+        }
+
         #login .btn {
             display: inline-block;
             margin: 1vh 1vw;
@@ -13,63 +17,73 @@
 
 <body>
     <div id="app">
-        <h1>{{ app_name }}</h1>
+
+        <header class="main">
+            <h1>
+                {{ app_name }}
+            </h1>
+        </header>
+
         <!-- login -->
-        <div id="login">
-            <p>选择用户:</p>
-            <button v-for="user in users" v-on:click="login( user.name )" v-bind:disabled="user.status === 0"
-                class="btn">{{ user.name }}</button>
+        <div id="login" v-if="user.status === 0">
+            <div>
+                输入用户:<input type="text" name="username" v-model="user.username">
+            </div>
+            <div>
+                <button v-on:click="login">确定</button>
+            </div>
         </div>
+
         <!-- /login -->
+
+        <!-- join_room -->
+        <div id="join_room" v-if="user.status === 1 && room.status === 0">
+            <div>
+                加入房间:<input type="text" name="roomname" v-model="room.roomname">
+            </div>
+            <div>
+                <button v-on:click="join_room">确定</button>
+            </div>
+        </div>
+        <!-- /join_room -->
     </div>
 </body>
 <script src="./js/main.js"></script>
 <script>
-    const ws_url = 'ws://localhost:3000'
-    let ws = null
-    function login(username) {
-        // websocket connection
+    var app = new Vue({
+        // 选项
+        el: '#app',
+        data: {
+            app_name: '多人音视频',
+            room: {
+                roomname: null,
+                status: 0,
+            },
+            user: {
+                username: null,
+                status: 0,
+            }
+        },
+        methods: {
+            login: async function () {
+                // todo websocket
+                await webSocketRpcClient.connection(sign_server_host)
 
-        // // @todo 自定义子协议
-        const ws_protocols = []
+                this.user.status = 1
 
-        ws = new WebSocket(ws_url + `?token=123456`, ws_protocols)
-
-        ws.addEventListener('open', event => {
-            //获得room token
-            ws.send(
-                JSON.stringify({ type: 'action', action: 'getRoomToken', data: { room: 'room1', username: username } })
-            )
-        })
-
-        ws.addEventListener('close', event => {
-            alert('close')
-        })
-
-        ws.addEventListener('message', event => {
-            alert('message')
-        })
-    }
+                alert(this.user.username + ' login success')
+            },
+            join_room: function () {
+                alert('join room:' + this.room.roomname)
+                this.room.status = 1
+            },
+        }
+    })
 
     window.onload = function () {
         if (typeof vConsole !== undefined) {
             const vconsole = new vConsole()
         }
-
-        var app = new Vue({
-            // 选项
-            el: '#app',
-            data: {
-                app_name: 'upfm',
-                users: [
-                    { name: 'user1', status: 1 },
-                    { name: 'user2', status: 0 },
-                    { name: 'user3', status: 0 },
-                    { name: 'user4', status: 0 },
-                ]
-            }
-        })
-        window.app = app
     }
 </script>
 
