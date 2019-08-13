@@ -23,9 +23,9 @@ function getIPAdress() {
 }
 
 const dotenv_config = require('dotenv').config()
-const sign_server_host = (typeof dotenv_config.error === 'undefined' && typeof dotenv_config.parsed.sign_server_host !== 'undefined')
-  ? env_data.sign_server_host
-  : `wss://${getIPAdress()}:3000`
+const sign_server_host = (typeof dotenv_config.error === 'undefined' && typeof dotenv_config.parsed.sign_server_host !== 'undefined') ?
+  dotenv_config.parsed.sign_server_host :
+  `wss://${getIPAdress()}:3000`
 
 module.exports = {
   mode: 'production',
@@ -57,7 +57,11 @@ module.exports = {
     }),
     new CopyPlugin([
       // { from: path.resolve(__dirname, 'src/samples/qiniu-rtn/client/live_server.js'), to: path.resolve(__dirname, 'dist/samples/qiniu-rtn/client/live_server.js') },
-      { from: path.resolve(__dirname, 'src'), to: path.resolve(__dirname, 'dist'), ignore: ['*.js', '*.ml'], }
+      {
+        from: path.resolve(__dirname, 'src'),
+        to: path.resolve(__dirname, 'dist'),
+        ignore: ['*.js', '*.ml'],
+      }
     ]),
   ],
   devtool: 'inline-source-map'
