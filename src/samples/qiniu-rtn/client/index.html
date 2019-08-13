@@ -66,15 +66,19 @@
         },
         methods: {
             login: async function () {
-                // todo websocket
-                await webSocketRpcClient.connection(sign_server_host)
+                const token = ''
+                try {
+                    await webSocketRpcClient.connection(`${sign_server_host}?token=${token}`)
+                } catch (error) {
+                    alert('登录失败')
+                    return
+                }
 
                 this.user.status = 1
-
-                alert(this.user.username + ' login success')
+                console.log(this.user.username + ' login success')
             },
             join_room: function () {
-                alert('join room:' + this.room.roomname)
+                console.log('join room:' + this.room.roomname)
                 this.room.status = 1
             },
         }

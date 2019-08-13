@@ -4,6 +4,7 @@ const https = require('https')
 const fs = require('fs')
 const path = require('path')
 
+const jwt = require('jsonwebtoken')
 // http server lib
 const Koa = require('koa')
 // websocket server lib
@@ -39,40 +40,64 @@ const wsServer = new WebSocket.Server({
 const _env_data = dotenv.config()
 const env_data = _env_data.error ? {} : _env_data.parsed
 
-console.log(env_data.rtn_app_id)
-
 const feaure = {
     auth: true
 }
 
+function get_jwt_secret_key() {
+    return ''
+}
+
+// get_jwt api:
 app.use(async ctx => {
-    ctx.body = 'Hello World'
+    const query = ctx.request.query
+    const user_id = query.user_id
+    const token = jwt.sign({ user_id }, get_jwt_secret_key())
+    ctx.body = token
 })
 
-// req : http.IncomingMessage
-wsServer.on('connection', (socket, req) => {
+const online_users = {};
 
-    // check req
-    const url = req.url
-    const url_info = UrlParser.parse(url, true)
+
+webServer.on('upgrade', function upgrade(request, socket, header) {
+
+    console.log('upgrade: check auth code:')
+    const url_info = UrlParser.parse(request.url, true);
 
     if (typeof url_info.query['token'] === 'undefined') {
-        socket.terminate()
+        // socket.terminate()
+        socket.destroy()
         return
     }
 
     const auth_token = url_info.query['token']
 
-    const req_headers = req.headers
+    // check auth
+    try {
+        const auth_token_decode = jwt.verify(auth_token, get_jwt_secret_key())
+        online_users[auth_token_decode.user_id] = {
+            status: 1
+        }
+        console.log(online_users)
 
-    // todo 检查 auth_token
+        wsServer.handleUpgrade(request, socket, head, function done(ws) {
+            wsServer.emit('connection', ws, request);
+        });
 
+    } catch (error) {
+        console.log('jwt code verify error')
+        // socket.terminate()
+        socket.destroy()
+    }
+});
+
+// req : http.IncomingMessage
+wsServer.on('connection', (socket, req) => {
+
+    console.log('connection')
     const ctx = {
         feaure,
-        socket,
-        req_headers,
-        url_info,
-        auth_token
+        socket
     }
 
     eventEmitter.emit('socket.connection', ctx)
@@ -91,9 +116,7 @@ wsServer.on('connection', (socket, req) => {
 //     ctx.socket.send(JSON.stringify(app_info))
 // })
 
-// todo 心跳检测
 
-// todo broadcast
 
 eventEmitter.on('socket.message', ([ctx, message]) => {
     let req_type = null
@@ -198,3 +221,7 @@ eventEmitter.on('error', ({
         id
     }))
 })
+
+// todo 心跳检测
+
+// todo broadcast

@@ -42,34 +42,42 @@ export default class Client extends EventEmitter {
     // id 相关方法 }}}
 
     connection(host, protocols) {
-        if (typeof protocols !== 'string') {
-            if ((typeof protocols === 'object') && (Object.is(protocols, null) === false)) {
-                protocols = protocols.toString()
-            } else {
-                protocols = ''
-            }
-        }
+        const socket = protocols ? new WebSocket(host, protocols) : new WebSocket(host)
 
-        const url = `${host}?token=` + Math.random().toString(36).substring(7)
-        const socket = protocols === '' ? (new WebSocket(url)) : (new WebSocket(url, protocols))
-
-        socket.addEventListener('message', event => {
-            const data = JSON.parse(event.data)
-
-            if (typeof data.id !== 'undefined') {
-                if (typeof data.error !== 'undefined') {
-                    this.setIdStatus(data.id, (typeof data.error['code'] === 'undefined') ? data.error['code'] : 1)
-                    this.setIdValues(data.id, data.error)
-                } else {
-                    this.setIdStatus(data.id, 0)
-                    this.setIdValues(data.id, data.result)
+        if (socket.readyState === 2 || socket.readyState === 3) {
+            return new Promise((resolve, reject) => {
+                reject('error')
+            })
+        } else {
+            socket.addEventListener('message', event => {
+                const data = JSON.parse(event.data)
+                if (typeof data.id !== 'undefined') {
+                    if (typeof data.error !== 'undefined') {
+                        this.setIdStatus(data.id, (typeof data.error['code'] === 'undefined') ? data.error['code'] : 1)
+                        this.setIdValues(data.id, data.error)
+                    } else {
+                        this.setIdStatus(data.id, 0)
+                        this.setIdValues(data.id, data.result)
+                    }
                 }
-            }
-        })
+            })
 
-        this.socket = socket
+            this.socket = socket
 
-        return socket
+            return new Promise((resolve, reject) => {
+                const timer = setInterval(()=>{
+                    if(socket.readyState === 1) {
+                        resolve(socket)
+                        clearInterval(timer)
+                    } else {
+                        if(socket.readyState === 2 || socket.readyState === 3) {
+                            reject('connection error')
+                            clearInterval(timer)
+                        }
+                    }
+                }, 0)
+            })
+        }
     }
 
     send(data, ack) {
