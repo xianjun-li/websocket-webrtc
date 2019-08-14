@@ -186,6 +186,13 @@
                         .catch(e => console.error("subscribe error", e));
                 });
                 // 就是这样，就像监听 DOM 事件一样通过 on 方法监听相应的事件并给出处理函数即可
+
+                this.room.myRoom.on("track-remove", (trackInfoList) => {
+                    console.log("get track-remove event!", trackInfoList);
+
+                    // todo 找出移除的track
+                });
+
             },
 
             // 这里的参数 myRoom 是指刚刚加入房间时初始化的 Session 对象
@@ -230,7 +237,12 @@
                 const tracks = await QNRTC
                     .deviceManager
                     .getLocalTracks();
+                // 取消发布
                 await this.room.myRoom.unpublish(tracks.map(track => track.info.trackId));
+                // 释放tracks
+                for (const track of tracks) {
+                    track.release();
+                }
             }
         }
     })
