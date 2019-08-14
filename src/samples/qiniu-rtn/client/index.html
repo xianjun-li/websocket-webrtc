@@ -66,7 +66,12 @@
         },
         methods: {
             login: async function () {
-                const token = ''
+                const response = await fetch(auth_server_host)
+                // todo 异常处理
+                const data = await response.json()
+                const token = data.token
+
+                // get token
                 try {
                     await webSocketRpcClient.connection(`${sign_server_host}?token=${token}`)
                 } catch (error) {

@@ -17,6 +17,7 @@ global.QNRTC = QNRTC
 
 // config
 global.sign_server_host = process.env.sign_server_host
+global.auth_server_host = process.env.auth_server_host
 
 const webSocketRpcClient = new WebSocketRpcClient()
 global.webSocketRpcClient = webSocketRpcClient

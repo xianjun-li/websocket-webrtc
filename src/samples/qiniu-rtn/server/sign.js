@@ -1,8 +1,8 @@
-const UrlParser = require('url')
 const EventEmitter = require('events')
-const https = require('https')
 const fs = require('fs')
 const path = require('path')
+const UrlParser = require('url')
+const https = require('https')
 
 const jwt = require('jsonwebtoken')
 // http server lib
@@ -13,11 +13,11 @@ const WebSocket = require('ws')
 const qiniu = require('qiniu')
 const dotenv = require('dotenv')
 
-function isJSON(str) {
-    return new Promise(
-        (resolve, reject) => resolve(JSON.parse(str))
-    )
-}
+// function isJSON(str) {
+//     return new Promise(
+//         (resolve, reject) => resolve(JSON.parse(str))
+//     )
+// }
 
 const eventEmitter = new EventEmitter()
 const app = new Koa()
@@ -45,15 +45,17 @@ const feaure = {
 }
 
 function get_jwt_secret_key() {
-    return ''
+    return ' '
 }
 
 // get_jwt api:
 app.use(async ctx => {
+    await ctx.set('Access-Control-Allow-Origin', '*')
+
     const query = ctx.request.query
     const user_id = query.user_id
     const token = jwt.sign({ user_id }, get_jwt_secret_key())
-    ctx.body = token
+    ctx.body = JSON.stringify({ token })
 })
 
 const online_users = {};

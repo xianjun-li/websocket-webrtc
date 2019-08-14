@@ -23,6 +23,10 @@ function getIPAdress() {
 }
 
 const dotenv_config = require('dotenv').config()
+
+const auth_server_host = (typeof dotenv_config.error === 'undefined' && typeof dotenv_config.parsed.auth_server_host !== 'undefined')
+  ? env_data.auth_server_host
+  : `https://${getIPAdress()}:3000`
 const sign_server_host = (typeof dotenv_config.error === 'undefined' && typeof dotenv_config.parsed.sign_server_host !== 'undefined')
   ? env_data.sign_server_host
   : `wss://${getIPAdress()}:3000`
@@ -49,6 +53,7 @@ module.exports = {
       process: {
         env: {
           sign_server_host: JSON.stringify(sign_server_host),
+          auth_server_host: JSON.stringify(auth_server_host),
         }
       }
     }),
