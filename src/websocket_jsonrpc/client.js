@@ -49,6 +49,9 @@ export default class Client extends EventEmitter {
                 reject('error')
             })
         } else {
+            this.socket = socket
+            console.log(this.socket)
+
             socket.addEventListener('message', event => {
                 const data = JSON.parse(event.data)
                 if (typeof data.id !== 'undefined') {
@@ -61,8 +64,6 @@ export default class Client extends EventEmitter {
                     }
                 }
             })
-
-            this.socket = socket
 
             return new Promise((resolve, reject) => {
                 const timer = setInterval(()=>{
@@ -139,7 +140,7 @@ export default class Client extends EventEmitter {
                 })
             }
 
-            socket.send(JSON.stringify(data))
+            this.socket.send(JSON.stringify(data))
             return ack ? promise : null
         }
     }

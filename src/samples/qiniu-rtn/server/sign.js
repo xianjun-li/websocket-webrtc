@@ -77,16 +77,18 @@ webServer.on('upgrade', function upgrade(request, socket, header) {
     // check auth
     try {
         const auth_token_decode = jwt.verify(auth_token, get_jwt_secret_key())
-        online_users[auth_token_decode.user_id] = {
-            status: 1
-        }
-        console.log(online_users)
+        console.log(auth_token_decode)
+        // online_users[auth_token_decode.user_id] = {
+        //     status: 1
+        // }
+        // console.log(online_users)
 
-        wsServer.handleUpgrade(request, socket, head, function done(ws) {
-            wsServer.emit('connection', ws, request);
-        });
+        // wsServer.handleUpgrade(request, socket, header, function done(ws) {
+        //     wsServer.emit('connection', ws, request);
+        // });
 
     } catch (error) {
+        console.log(error)
         console.log('jwt code verify error')
         // socket.terminate()
         socket.destroy()

@@ -8,6 +8,11 @@
             background-color: #eee;
         }
 
+        header .notify {
+            background-color: blue;
+            color: #eee;
+        }
+
         #login .btn {
             display: inline-block;
             margin: 1vh 1vw;
@@ -22,6 +27,8 @@
             <h1>
                 {{ app_name }}
             </h1>
+
+            <div class="notify"> --&gt; {{notify}}</div>
         </header>
 
         <!-- login -->
@@ -46,6 +53,18 @@
             </div>
         </div>
         <!-- /join_room -->
+
+        <!-- room_view -->
+        <div id="room_view" v-if="room.status === 1">
+            <div class="controllers">
+                发送消息:<input type="text">
+                <button>发送</button>
+                <button>订阅/取消订阅</button>
+                <button>发布/取消发布</button>
+                
+            </div>
+        </div>
+        <!-- /room_view-->
     </div>
 </body>
 <script src="./js/main.js"></script>
@@ -55,6 +74,7 @@
         el: '#app',
         data: {
             app_name: '多人音视频',
+            notify: '',
             room: {
                 roomname: null,
                 status: 0,
@@ -66,25 +86,61 @@
         },
         methods: {
             login: async function () {
-                const response = await fetch(auth_server_host)
+                const username = this.user.username
+                const response = await fetch(`${auth_server_host}?user_id=${username}`)
                 // todo 异常处理
                 const data = await response.json()
                 const token = data.token
+                this.notify = '获得TOKEN成功'
 
                 // get token
                 try {
                     await webSocketRpcClient.connection(`${sign_server_host}?token=${token}`)
                 } catch (error) {
-                    alert('登录失败')
+                    this.notify = '登录失败'
                     return
                 }
 
                 this.user.status = 1
+                this.notify = '登录成功'
                 console.log(this.user.username + ' login success')
             },
-            join_room: function () {
+
+            join_room: async function () {
                 console.log('join room:' + this.room.roomname)
+
+                const username = this.room.roomname
+                const roomname = this.user.username
+
+                if (username == '' || roomname == '') {
+                    alert('用户或者房间名为空')
+                    return
+                }
+
+                console.log(`${username} join room:`)
+
+                const { roomToken } = await webSocketRpcClient.send({
+                    method: 'getRoomToken',
+                    params: {
+                        username,
+                        roomname
+                    }
+                }, true)
+
+                console.log(roomToken)
+
+                const myRoom = await joinRoomWithToken('track', roomToken)
+                console.log('room', myRoom)
+                console.log('join room success')
+                this.notify = '进入房间:' + this.room.roomname
                 this.room.status = 1
+
+                // try {
+                //     await publish(myRoom)
+                // } catch (error) {
+                //     console.log(error)
+                //     alert(error)
+                // }
             },
         }
     })
