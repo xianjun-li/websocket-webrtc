@@ -59,9 +59,9 @@
             <div class="controllers">
                 发送消息:<input type="text">
                 <button>发送</button>
-                <button>订阅/取消订阅</button>
+                <button v-on:click="autoSubscribe()">订阅/取消订阅</button>
                 <button>发布/取消发布</button>
-                
+
             </div>
         </div>
         <!-- /room_view-->
@@ -130,6 +130,7 @@
                 console.log(roomToken)
 
                 const myRoom = await joinRoomWithToken('track', roomToken)
+                this.room.myRoom = myRoom
                 console.log('room', myRoom)
                 console.log('join room success')
                 this.notify = '进入房间:' + this.room.roomname
@@ -141,6 +142,41 @@
                 //     console.log(error)
                 //     alert(error)
                 // }
+            },
+
+            // 这里的参数 myRoom 是指刚刚加入房间时初始化的 Session 对象, 同上
+            // trackInfoList 是一个 trackInfo 的列表，订阅支持多个 track 同时订阅。
+            subscribe: async function (trackInfoList) {
+                // 通过传入 trackId 调用订阅方法发起订阅，成功会返回相应的 Track 对象，也就是远端的 Track 列表了
+                const remoteTracks = await this.room.myRoom.subscribe(trackInfoList.map(info => info.trackId));
+
+                // 选择页面上的一个元素作为父元素，播放远端的音视频轨
+                const remoteElement = document.getElementById("remotetracks");
+                // 遍历返回的远端 Track，调用 play 方法完成在页面上的播放
+                for (const remoteTrack of remoteTracks) {
+                    remoteTrack.play(remoteElement);
+                }
+            },
+
+            // 这里的参数 myRoom 是指刚刚加入房间时初始化的 Session 对象, 同上
+            autoSubscribe: function () {
+                const trackInfoList = this.room.myRoom.trackInfoList;
+                console.log("room current trackInfo list", trackInfoList)
+
+                // 调用我们刚刚编写的 subscribe 方法
+                // 注意这里我们没有使用 async/await，而是使用了 Promise，大家可以思考一下为什么
+                this.subscribe(trackInfoList)
+                    .then(() => console.log("subscribe success!"))
+                    .catch(e => console.error("subscribe error", e));
+
+                // 添加事件监听，当房间中出现新的 Track 时就会触发，参数是 trackInfo 列表
+                this.room.myRoom.on("track-add", (trackInfoList) => {
+                    console.log("get track-add event!", trackInfoList);
+                    this.subscribe(trackInfoList)
+                        .then(() => console.log("subscribe success!"))
+                        .catch(e => console.error("subscribe error", e));
+                });
+                // 就是这样，就像监听 DOM 事件一样通过 on 方法监听相应的事件并给出处理函数即可
             },
         }
     })
