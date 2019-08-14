@@ -61,7 +61,8 @@
             <div class="controllers">
                 发送消息:<input type="text">
                 <button>发送</button>
-                <button v-on:click="autoSubscribe()">订阅/取消订阅</button>
+                <button v-on:click="autoSubscribe()">订阅</button>
+                <button v-on:click="unsubscribeAll()">取消订阅</button>
                 <button v-on:click="publish()">发布/取消发布</button>
 
             </div>
@@ -158,6 +159,11 @@
                 for (const remoteTrack of remoteTracks) {
                     remoteTrack.play(remoteElement);
                 }
+            },
+
+            unsubscribeAll: async function() {
+                const trackInfoList = this.room.myRoom.trackInfoList;
+                await this.room.myRoom.unsubscribe(trackInfoList.map(info => info.trackId));
             },
 
             // 这里的参数 myRoom 是指刚刚加入房间时初始化的 Session 对象, 同上
