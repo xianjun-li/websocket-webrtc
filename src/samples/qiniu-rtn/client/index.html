@@ -63,7 +63,8 @@
                 <button>发送</button>
                 <button v-on:click="autoSubscribe()">订阅</button>
                 <button v-on:click="unsubscribeAll()">取消订阅</button>
-                <button v-on:click="publish()">发布/取消发布</button>
+                <button v-on:click="publish()">发布</button>
+                <button v-on:click="unpublish()">取消发布</button>
 
             </div>
         </div>
@@ -161,7 +162,7 @@
                 }
             },
 
-            unsubscribeAll: async function() {
+            unsubscribeAll: async function () {
                 const trackInfoList = this.room.myRoom.trackInfoList;
                 await this.room.myRoom.unsubscribe(trackInfoList.map(info => info.trackId));
             },
@@ -223,6 +224,13 @@
                     // 调用 Track 对象的 play 方法在这个元素下播放视频轨
                     localTrack.play(localElement, true);
                 }
+            },
+
+            unpublish: async function () {
+                const tracks = await QNRTC
+                    .deviceManager
+                    .getLocalTracks();
+                await this.room.myRoom.unpublish(tracks.map(track => track.info.trackId));
             }
         }
     })
