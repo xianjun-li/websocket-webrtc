@@ -56,11 +56,13 @@
 
         <!-- room_view -->
         <div id="room_view" v-if="room.status === 1">
+            <div id="localtracks"></div>
+            <div id="remotetracks"></div>
             <div class="controllers">
                 发送消息:<input type="text">
                 <button>发送</button>
                 <button v-on:click="autoSubscribe()">订阅/取消订阅</button>
-                <button>发布/取消发布</button>
+                <button v-on:click="publish()">发布/取消发布</button>
 
             </div>
         </div>
@@ -109,8 +111,8 @@
             join_room: async function () {
                 console.log('join room:' + this.room.roomname)
 
-                const username = this.room.roomname
-                const roomname = this.user.username
+                const username = this.user.username
+                const roomname = this.room.roomname
 
                 if (username == '' || roomname == '') {
                     alert('用户或者房间名为空')
@@ -178,6 +180,44 @@
                 });
                 // 就是这样，就像监听 DOM 事件一样通过 on 方法监听相应的事件并给出处理函数即可
             },
+
+            // 这里的参数 myRoom 是指刚刚加入房间时初始化的 Session 对象
+            publish: async function () {
+                const myRoom = this.room.myRoom
+                console.log('publish start:')
+                // 我们打开了 3 个参数，即采集音频，采集视频，采集屏幕共享。
+                // 这个函数会返回一个列表，列表中每一项就是一个音视频轨对象
+                const localTracks = await QNRTC
+                    .deviceManager
+                    .getLocalTracks({
+                        audio: {
+                            enabled: true,
+                            tag: "audio"
+                        },
+                        video: {
+                            enabled: true,
+                            tag: "video"
+                        },
+                        // screen: { enabled: true, tag: "screen" },
+                    });
+                console.log("my local tracks", localTracks);
+                // 将刚刚的 Track 列表发布到房间中
+                await myRoom.publish(localTracks);
+                console.log("publish success!");
+
+                // 在这里添加
+                // 获取页面上的一个元素作为播放画面的父元素
+                const localElement = document.getElementById("localtracks");
+                // 遍历本地采集的 Track 对象
+                for (const localTrack of localTracks) {
+                    // 如果这是麦克风采集的音频 Track，我们就不播放它。
+                    if (localTrack.info.tag === "audio")
+                        continue;
+
+                    // 调用 Track 对象的 play 方法在这个元素下播放视频轨
+                    localTrack.play(localElement, true);
+                }
+            }
         }
     })
 
