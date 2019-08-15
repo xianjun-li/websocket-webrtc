@@ -65,6 +65,8 @@
                 <button v-on:click="unsubscribeAll()">取消订阅</button>
                 <button v-on:click="publish()">发布</button>
                 <button v-on:click="unpublish()">取消发布</button>
+                <button v-on:click="mergeStream()">合流</button>
+
 
             </div>
         </div>
@@ -189,7 +191,6 @@
 
                 this.room.myRoom.on("track-remove", (trackInfoList) => {
                     console.log("get track-remove event!", trackInfoList);
-
                     // todo 找出移除的track
                 });
 
@@ -226,10 +227,9 @@
                 for (const localTrack of localTracks) {
                     // 如果这是麦克风采集的音频 Track，我们就不播放它。
                     if (localTrack.info.tag === "audio")
-                        continue;
-
+                        continue
                     // 调用 Track 对象的 play 方法在这个元素下播放视频轨
-                    localTrack.play(localElement, true);
+                    localTrack.play(localElement, true)
                 }
             },
 
@@ -241,9 +241,14 @@
                 await this.room.myRoom.unpublish(tracks.map(track => track.info.trackId));
                 // 释放tracks
                 for (const track of tracks) {
+                    alert('释放:' + track)
                     track.release();
                 }
-            }
+            },
+
+            mergeStream: function () {
+                this.room.myRoom.setDefaultMergeStream(1280, 720);
+            },
         }
     })
 
