@@ -61,13 +61,12 @@
             <div class="controllers">
                 发送消息:<input type="text">
                 <button>发送</button>
-                <button v-on:click="autoSubscribe()">订阅</button>
-                <button v-on:click="unsubscribeAll()">取消订阅</button>
-                <button v-on:click="publish()">发布</button>
-                <button v-on:click="unpublish()">取消发布</button>
-                <button v-on:click="mergeStream()">合流</button>
-
-
+                <button v-if="room.subscribed !== true" v-on:click="autoSubscribe()">订阅</button>
+                <button v-if="room.subscribed === true" v-on:click="unsubscribeAll()">取消订阅</button>
+                <button v-if="room.published !== true" v-on:click="publish()">发布</button>
+                <button v-if="room.published === true" v-on:click="unpublish()">取消发布</button>
+                <button v-if="room.subscribed === true" v-on:click="mergeStream()">合流</button>
+                <button v-on:click="leave_room()">离开房间</button>
             </div>
         </div>
         <!-- /room_view-->
@@ -84,6 +83,8 @@
             room: {
                 roomname: null,
                 status: 0,
+                published: false,
+                subscribed: false,
             },
             user: {
                 username: null,
@@ -156,6 +157,8 @@
                 // 通过传入 trackId 调用订阅方法发起订阅，成功会返回相应的 Track 对象，也就是远端的 Track 列表了
                 const remoteTracks = await this.room.myRoom.subscribe(trackInfoList.map(info => info.trackId));
 
+                this.room.subscribed = true;
+
                 // 选择页面上的一个元素作为父元素，播放远端的音视频轨
                 const remoteElement = document.getElementById("remotetracks");
                 // 遍历返回的远端 Track，调用 play 方法完成在页面上的播放
@@ -167,6 +170,7 @@
             unsubscribeAll: async function () {
                 const trackInfoList = this.room.myRoom.trackInfoList;
                 await this.room.myRoom.unsubscribe(trackInfoList.map(info => info.trackId));
+                this.room.subscribed = false;
             },
 
             // 这里的参数 myRoom 是指刚刚加入房间时初始化的 Session 对象, 同上
@@ -209,15 +213,16 @@
                             enabled: true,
                             tag: "audio"
                         },
-                        video: {
-                            enabled: true,
-                            tag: "video"
-                        },
+                        // video: {
+                        //     enabled: true,
+                        //     tag: "video"
+                        // },
                         // screen: { enabled: true, tag: "screen" },
                     });
                 console.log("my local tracks", localTracks);
                 // 将刚刚的 Track 列表发布到房间中
                 await myRoom.publish(localTracks);
+                this.room.published = true
                 console.log("publish success!");
 
                 // 在这里添加
@@ -234,21 +239,34 @@
             },
 
             unpublish: async function () {
-                const tracks = await QNRTC
-                    .deviceManager
-                    .getLocalTracks();
-                // 取消发布
-                await this.room.myRoom.unpublish(tracks.map(track => track.info.trackId));
-                // 释放tracks
-                for (const track of tracks) {
-                    alert('释放:' + track)
-                    track.release();
-                }
+                // const tracks = await QNRTC
+                //     .deviceManager
+                //     .getLocalTracks();
+
+                const tracks = QNRTC.trackInfoList;
+                alert(typeof tracks)
+
+                // tracks.map(track => {
+                //     alert(JSON.stringify(Object.keys(track.info)))
+                // })
+
+                // // 取消发布
+                // await this.room.myRoom.unpublish(tracks.map(track => track.info.trackId));
+                // // 释放tracks
+                // for (const track of tracks) {
+                //     alert('释放:' + track)
+                //     track.release();
+                // }
             },
 
             mergeStream: function () {
                 this.room.myRoom.setDefaultMergeStream(1280, 720);
             },
+
+            leave_room: async function () {
+                await this.room.myRoom.leaveRoom()
+                this.room.status = 0;
+            }
         }
     })
 
