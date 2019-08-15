@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0;" name="viewport" />
     <style>
         header.main {
             background-color: #eee;
@@ -243,11 +244,12 @@
                 //     .deviceManager
                 //     .getLocalTracks();
 
-                const tracks = QNRTC.trackInfoList;
-                alert(typeof tracks)
+                const tracks = this.room.myRoom.trackInfoList;
 
+                alert(typeof tracks)
+                alert(JSON.stringify(Object.keys(tracks)))
                 // tracks.map(track => {
-                //     alert(JSON.stringify(Object.keys(track.info)))
+                //     alert(JSON.stringify(Object.keys(track)))
                 // })
 
                 // // 取消发布
