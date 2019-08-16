@@ -63,10 +63,13 @@
                 发送消息:<input type="text">
                 <button>发送</button>
                 <button v-if="room.subscribed !== true" v-on:click="autoSubscribe()">订阅</button>
-                <button v-if="room.subscribed === true" v-on:click="unsubscribeAll()">取消订阅</button>
+                <button v-if="(room.subscribed === true) && (room.mergeStreamStatus !== true)"
+                    v-on:click="unsubscribeAll()">取消订阅</button>
                 <button v-if="room.published !== true" v-on:click="publish()">发布</button>
                 <button v-if="room.published === true" v-on:click="unpublish()">取消发布</button>
-                <button v-if="room.subscribed === true" v-on:click="mergeStream()">合流</button>
+                <button v-if="room.subscribed === true && room.mergeStreamStatus !== true"
+                    v-on:click="mergeStream()">合流</button>
+                <button v-if="room.mergeStreamStatus === true" v-on:click="stopMergeStream()">停止合流</button>
                 <button v-on:click="leave_room()">离开房间</button>
             </div>
         </div>
@@ -85,7 +88,8 @@
                 roomname: null,
                 status: 0,
                 published: false,
-                subscribed: false
+                subscribed: false,
+                mergeStreamStatus: false,
             },
             user: {
                 username: null,
@@ -141,11 +145,25 @@
                 console.log(roomToken)
 
                 const myRoom = await joinRoomWithToken('track', roomToken)
+
+                if (myRoom === null) {
+                    alert('join room error')
+                    return
+                }
+
                 this.room.myRoom = myRoom
                 console.log('room', myRoom)
                 console.log('join room success')
                 this.notify = '进入房间:' + this.room.roomname
                 this.room.status = 1
+            },
+
+            leave_room: async function () {
+                await this
+                    .room
+                    .myRoom
+                    .leaveRoom()
+                this.room.status = 0
             },
 
             // 这里的参数 myRoom 是指刚刚加入房间时初始化的 Session 对象, 同上
@@ -267,20 +285,21 @@
                 this.room.published = false
             },
 
-            mergeStream: function () {
-                this
-                    .room
-                    .myRoom
-                    .setDefaultMergeStream(1280, 720)
-            },
-
-            leave_room: async function () {
+            mergeStream: async function () {
                 await this
                     .room
                     .myRoom
-                    .leaveRoom()
-                this.room.status = 0
-            }
+                    .setDefaultMergeStream(1280, 720)
+                this.room.mergeStreamStatus = true
+            },
+
+            stopMergeStream: async function () {
+                await this
+                    .room
+                    .myRoom
+                    .stopMergeStream()
+                this.room.mergeStreamStatus = false
+            },
         }
     })
 
@@ -288,6 +307,8 @@
         if (typeof vConsole !== undefined) {
             const vconsole = new vConsole()
         }
+
+        // confirm('ok')
     }
 </script>
 
