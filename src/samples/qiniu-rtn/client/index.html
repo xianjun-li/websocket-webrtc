@@ -146,13 +146,6 @@
                 console.log('join room success')
                 this.notify = '进入房间:' + this.room.roomname
                 this.room.status = 1
-
-                // try {
-                //     await publish(myRoom)
-                // } catch (error) {
-                //     console.log(error)
-                //     alert(error)
-                // }
             },
 
             // 这里的参数 myRoom 是指刚刚加入房间时初始化的 Session 对象, 同上
@@ -162,30 +155,30 @@
                 const remoteTracks = await this
                     .room
                     .myRoom
-                    .subscribe(trackInfoList.map(info => info.trackId));
+                    .subscribe(trackInfoList.map(info => info.trackId))
 
-                this.room.subscribed = true;
+                this.room.subscribed = true
 
                 // 选择页面上的一个元素作为父元素，播放远端的音视频轨
-                const remoteElement = document.getElementById("remotetracks");
+                const remoteElement = document.getElementById("remotetracks")
                 // 遍历返回的远端 Track，调用 play 方法完成在页面上的播放
                 for (const remoteTrack of remoteTracks) {
-                    remoteTrack.play(remoteElement);
+                    remoteTrack.play(remoteElement)
                 }
             },
 
             unsubscribeAll: async function () {
-                const trackInfoList = this.room.myRoom.trackInfoList;
+                const trackInfoList = this.room.myRoom.trackInfoList
                 await this
                     .room
                     .myRoom
-                    .unsubscribe(trackInfoList.map(info => info.trackId));
-                this.room.subscribed = false;
+                    .unsubscribe(trackInfoList.map(info => info.trackId))
+                this.room.subscribed = false
             },
 
             // 这里的参数 myRoom 是指刚刚加入房间时初始化的 Session 对象, 同上
             autoSubscribe: function () {
-                const trackInfoList = this.room.myRoom.trackInfoList;
+                const trackInfoList = this.room.myRoom.trackInfoList
                 console.log("room current trackInfo list", trackInfoList)
 
                 // 调用我们刚刚编写的 subscribe 方法
@@ -193,28 +186,28 @@
                 this
                     .subscribe(trackInfoList)
                     .then(() => console.log("subscribe success!"))
-                    .catch(e => console.error("subscribe error", e));
+                    .catch(e => console.error("subscribe error", e))
 
                 // 添加事件监听，当房间中出现新的 Track 时就会触发，参数是 trackInfo 列表
                 this
                     .room
                     .myRoom
                     .on("track-add", (trackInfoList) => {
-                        console.log("get track-add event!", trackInfoList);
+                        console.log("get track-add event!", trackInfoList)
                         this
                             .subscribe(trackInfoList)
                             .then(() => console.log("subscribe success!"))
-                            .catch(e => console.error("subscribe error", e));
-                    });
+                            .catch(e => console.error("subscribe error", e))
+                    })
                 // 就是这样，就像监听 DOM 事件一样通过 on 方法监听相应的事件并给出处理函数即可
 
                 this
                     .room
                     .myRoom
                     .on("track-remove", (trackInfoList) => {
-                        console.log("get track-remove event!", trackInfoList);
+                        console.log("get track-remove event!", trackInfoList)
                         // todo 找出移除的track
-                    });
+                    })
 
             },
 
@@ -239,16 +232,16 @@
                         //     tag: "video"
                         // },
                         // screen: { enabled: true, tag: "screen" },
-                    });
-                console.log("my local tracks", localTracks);
+                    })
+                console.log("my local tracks", localTracks)
                 // 将刚刚的 Track 列表发布到房间中
-                await myRoom.publish(localTracks);
+                await myRoom.publish(localTracks)
                 this.room.published = true
-                console.log("publish success!");
+                console.log("publish success!")
 
                 // 在这里添加
                 // 获取页面上的一个元素作为播放画面的父元素
-                const localElement = document.getElementById("localtracks");
+                const localElement = document.getElementById("localtracks")
                 // 遍历本地采集的 Track 对象
                 for (const localTrack of localTracks) {
                     // 如果这是麦克风采集的音频 Track，我们就不播放它。
@@ -260,16 +253,16 @@
             },
 
             unpublish: async function () {
-                const tracks = this.room.myRoom.publishedTracks;
+                const tracks = this.room.myRoom.publishedTracks
                 //  取消发布
                 await this
                     .room
                     .myRoom
-                    .unpublish(tracks.map(track => track.info.trackId));
+                    .unpublish(tracks.map(track => track.info.trackId))
                 //  释放tracks
                 for (const track of tracks) {
                     alert('释放:' + track)
-                    track.release();
+                    track.release()
                 }
                 this.room.published = false
             },
@@ -286,7 +279,7 @@
                     .room
                     .myRoom
                     .leaveRoom()
-                this.room.status = 0;
+                this.room.status = 0
             }
         }
     })
