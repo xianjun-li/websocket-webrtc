@@ -45,10 +45,9 @@ global.joinRoomWithToken = async function (joinType, token) {
     const myRoom = new QNRTC[sessionType]
     try {
         await myRoom.joinRoomWithToken(token)
+        return myRoom
     } catch (error) {
-        alert('error')
         console.log(error)
+        return null
     }
-
-    return myRoom
 }
