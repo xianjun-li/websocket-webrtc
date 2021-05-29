@@ -29,7 +29,7 @@
   "dependencies": {
     "jsonwebtoken": "^8.5.1",
     "koa": "^2.7.0",
-    "ws": "^7.0.1"
+    "ws": "^7.4.6"
   },
   "description": "websocket and webrtc lib",
   "main": "webpack.config.js",
